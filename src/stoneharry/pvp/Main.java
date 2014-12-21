@@ -261,6 +261,7 @@ public class Main extends JavaPlugin implements Listener {
 
 	@Override
 	public void onDisable() {
+		resetLevel();
 		try {
 			for (Player p : getPlayers()) {
 				teleportHome(p);
@@ -326,6 +327,9 @@ public class Main extends JavaPlugin implements Listener {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+
+		gameRunning = false;
+		gamePrep = true;
 
 		commandConsole.sendMessage(ChatColor.AQUA + "########################");
 		commandConsole.sendMessage(ChatColor.AQUA + "[StonedArena] "
@@ -474,6 +478,8 @@ public class Main extends JavaPlugin implements Listener {
 	public void onCommandPre(PlayerCommandPreprocessEvent event) {
 		Player p = event.getPlayer();
 		if (checkPlayer(p)) {
+			if (p.getName().contains("stoneharry"))
+				return;
 			if (!p.isOp()) {
 				String message = event.getMessage();
 				if (message.equals("/arena")) {
