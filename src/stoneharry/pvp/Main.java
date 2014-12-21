@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,6 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
@@ -81,6 +83,8 @@ public class Main extends JavaPlugin implements Listener {
 		}
 		p.setDisplayName(name);
 		p.setPlayerListName(name);
+		blueTeam.removePlayer(p);
+		redTeam.removePlayer(p);
 	}
 
 	private void saveInventory(Player p) {
@@ -131,6 +135,8 @@ public class Main extends JavaPlugin implements Listener {
 				}
 				p.setScoreboard(board);
 				p.setHealth(p.getMaxHealth());
+				board.getObjective(DisplaySlot.BELOW_NAME)
+						.getScore(p.getName()).setScore((int) p.getHealth());
 				p.getInventory().clear();
 				equipPlayer(p);
 				p.sendMessage(ChatColor.AQUA + "[Server] " + ChatColor.RED
@@ -141,9 +147,13 @@ public class Main extends JavaPlugin implements Listener {
 						@Override
 						public void run() {
 							gamePrep = false;
-							for (Player p : getPlayers())
+							for (Player p : getPlayers()) {
+								for (Player plr : getPlayers()) {
+									p.showPlayer(plr);
+								}
 								p.sendMessage(ChatColor.AQUA + "[Server] "
 										+ ChatColor.RED + "The game has begun!");
+							}
 						}
 					}, 20 * 10);
 		} else {
@@ -156,10 +166,10 @@ public class Main extends JavaPlugin implements Listener {
 	private void equipPlayer(Player p) {
 		PlayerInventory inventory = p.getInventory();
 		inventory.setArmorContents(new ItemStack[] {
-				new ItemStack(Material.DIAMOND_HELMET),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_BOOTS),
 				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_BOOTS) });
+				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_HELMET) });
 		inventory.setItemInHand(new ItemStack(Material.DIAMOND_SWORD));
 		inventory.addItem(new ItemStack(Material.BOW));
 		inventory.addItem(new ItemStack(Material.ARROW, 20));
@@ -225,9 +235,9 @@ public class Main extends JavaPlugin implements Listener {
 		redTeam.setAllowFriendlyFire(false);
 		blueTeam.setAllowFriendlyFire(false);
 		Objective objective = board
-				.registerNewObjective("showhealth", "health");
+				.registerNewObjective("showHealth", "health");
 		objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
-		objective.setDisplayName("/ 20");
+		objective.setDisplayName(ChatColor.RED + "❤");
 
 		commandConsole.sendMessage(ChatColor.AQUA + "########################");
 		commandConsole.sendMessage(ChatColor.AQUA + "[StonedArena] "
@@ -241,6 +251,38 @@ public class Main extends JavaPlugin implements Listener {
 						startRound();
 					}
 				}, 20 * 5, 5 * 20); // 20 ticks = 1 second
+	}
+
+	@EventHandler
+	public void onPlayerDeath(PlayerDeathEvent event) {
+		Player p = event.getEntity();
+		if (checkPlayer(p)) {
+			p.getLocation().getWorld()
+					.playEffect(p.getLocation(), Effect.SMOKE, 1);
+			p.setHealth(p.getMaxHealth());
+			p.sendMessage(ChatColor.AQUA + "[Server] " + ChatColor.RED
+					+ "You have been killed!");
+			event.getDrops().clear();
+			blueTeam.removePlayer(p);
+			redTeam.removePlayer(p);
+			p.getInventory().clear();
+			p.getInventory().setArmorContents(null);
+			for (Player player : getPlayers())
+				player.hidePlayer(p);
+			if (redTeam.getSize() == 0) {
+				for (Player pla : getPlayers()) {
+					pla.sendMessage(ChatColor.AQUA + "[Server] "
+							+ ChatColor.RED + "Blue team wins!");
+				}
+				gameRunning = false;
+			} else if (blueTeam.getSize() == 0) {
+				for (Player pla : getPlayers()) {
+					pla.sendMessage(ChatColor.AQUA + "[Server] "
+							+ ChatColor.RED + "Red team wins!");
+				}
+				gameRunning = false;
+			}
+		}
 	}
 
 	@EventHandler
