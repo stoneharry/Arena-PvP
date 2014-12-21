@@ -1,0 +1,8 @@
+name: StonedArena
+version: 1.0
+description: Stoneharry's PvP Plugin.
+author: Stoneharry
+main: stoneharry.pvp.Main
+commands:
+    arena:
+        description: Join the arena.
