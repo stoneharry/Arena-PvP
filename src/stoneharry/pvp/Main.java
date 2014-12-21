@@ -21,6 +21,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -48,6 +49,7 @@ public class Main extends JavaPlugin implements Listener {
 	private int[] homeCoords = { 0, 0, 0 };
 	private int[] blueCoords = { 0, 0, 0 };
 	private int[] redCoords = { 0, 0, 0 };
+	private int[] deadCoords = { 0, 0, 0 };
 	private String homeName = "world";
 	private String worldName = "arena";
 
@@ -148,9 +150,6 @@ public class Main extends JavaPlugin implements Listener {
 						public void run() {
 							gamePrep = false;
 							for (Player p : getPlayers()) {
-								for (Player plr : getPlayers()) {
-									p.showPlayer(plr);
-								}
 								p.sendMessage(ChatColor.AQUA + "[Server] "
 										+ ChatColor.RED + "The game has begun!");
 							}
@@ -199,6 +198,9 @@ public class Main extends JavaPlugin implements Listener {
 		redCoords[0] = Integer.parseInt(getConfig().getString("redX"));
 		redCoords[1] = Integer.parseInt(getConfig().getString("redY"));
 		redCoords[2] = Integer.parseInt(getConfig().getString("redZ"));
+		deadCoords[0] = Integer.parseInt(getConfig().getString("deadX"));
+		deadCoords[1] = Integer.parseInt(getConfig().getString("deadY"));
+		deadCoords[2] = Integer.parseInt(getConfig().getString("deadZ"));
 	}
 
 	@Override
@@ -234,8 +236,7 @@ public class Main extends JavaPlugin implements Listener {
 		redTeam.setPrefix(ChatColor.RED + "[Red] ");
 		redTeam.setAllowFriendlyFire(false);
 		blueTeam.setAllowFriendlyFire(false);
-		Objective objective = board
-				.registerNewObjective("showHealth", "health");
+		Objective objective = board.registerNewObjective("showHealth", "dummy");
 		objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
 		objective.setDisplayName(ChatColor.RED + "❤");
 
@@ -254,6 +255,23 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	@EventHandler
+	public void dmg(EntityDamageEvent event) {
+		Entity e = event.getEntity();
+		if (e instanceof Player) {
+			Player p = (Player) e;
+			if (!checkPlayer(p))
+				return;
+			if (blueTeam.hasPlayer(p) || redTeam.hasPlayer(p))
+				board.getObjective(DisplaySlot.BELOW_NAME)
+						.getScore(p.getName())
+						.setScore(
+								(int) (p.getHealth() - event.getFinalDamage()));
+			else
+				event.setCancelled(true);
+		}
+	}
+
+	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent event) {
 		Player p = event.getEntity();
 		if (checkPlayer(p)) {
@@ -267,8 +285,8 @@ public class Main extends JavaPlugin implements Listener {
 			redTeam.removePlayer(p);
 			p.getInventory().clear();
 			p.getInventory().setArmorContents(null);
-			for (Player player : getPlayers())
-				player.hidePlayer(p);
+			p.teleport(new Location(Bukkit.getWorld(worldName), deadCoords[0],
+					deadCoords[1], deadCoords[2]));
 			if (redTeam.getSize() == 0) {
 				for (Player pla : getPlayers()) {
 					pla.sendMessage(ChatColor.AQUA + "[Server] "

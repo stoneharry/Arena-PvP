@@ -16,3 +16,7 @@ blueZ: -21
 redX: -6
 redY: 5
 redZ: 14
+
+deadX: -5
+deadY: 4
+deadZ: 30
