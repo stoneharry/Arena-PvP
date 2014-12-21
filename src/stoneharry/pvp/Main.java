@@ -264,9 +264,9 @@ public class Main extends JavaPlugin implements Listener {
 		objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
 		objective.setDisplayName(ChatColor.RED + "❤");
 
-		objective = board.registerNewObjective("killsboard", "dummy");
-		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-		objective.setDisplayName(ChatColor.AQUA + "High Scores");
+		Main.objective = board.registerNewObjective("killsboard", "dummy");
+		Main.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+		Main.objective.setDisplayName(ChatColor.AQUA + "High Scores");
 
 		try {
 			FileInputStream fs = new FileInputStream(new File(
