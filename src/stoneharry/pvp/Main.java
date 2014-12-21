@@ -21,6 +21,7 @@ import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -359,6 +360,10 @@ public class Main extends JavaPlugin implements Listener {
 						.scheduleSyncDelayedTask(this, new Runnable() {
 							@Override
 							public void run() {
+								for (OfflinePlayer p : blueTeam.getPlayers())
+									blueTeam.removePlayer(p);
+								for (OfflinePlayer p : redTeam.getPlayers())
+									redTeam.removePlayer(p);
 								resetLevel();
 								gameRunning = false;
 							}
