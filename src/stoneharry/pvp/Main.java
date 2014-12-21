@@ -117,16 +117,58 @@ public class Main extends JavaPlugin implements Listener {
 	private void teleportHome(Player p) {
 		p.teleport(new Location(Bukkit.getWorld(homeName), homeCoords[0],
 				homeCoords[1], homeCoords[2]));
+		Scoreboard emptyBoard = manager.getNewScoreboard();
+		p.setScoreboard(emptyBoard);
+		blueTeam.removePlayer(p);
+		redTeam.removePlayer(p);
 	}
 
 	private void teleportPlayerIn(Player p) {
-		p.teleport(new Location(Bukkit.getWorld(worldName), blueCoords[0],
-				blueCoords[1], blueCoords[2]));
+		p.teleport(new Location(Bukkit.getWorld(worldName), deadCoords[0],
+				deadCoords[1], deadCoords[2]));
 	}
 
+	private boolean endGame = false;
+
 	private synchronized void startRound() {
-		if (gameRunning)
+		if (gameRunning) {
+			if (!endGame) {
+				if (redTeam.getSize() == 0) {
+					for (Player pla : getPlayers()) {
+						pla.sendMessage(ChatColor.AQUA
+								+ "[Server] "
+								+ ChatColor.RED
+								+ "Blue team wins! This round will end in 10 seconds...");
+					}
+					endGame = true;
+				} else if (blueTeam.getSize() == 0) {
+					for (Player pla : getPlayers()) {
+						pla.sendMessage(ChatColor.AQUA
+								+ "[Server] "
+								+ ChatColor.RED
+								+ "Red team wins! This round will end in 10 seconds...");
+					}
+					endGame = true;
+				}
+				if (endGame) {
+					Bukkit.getServer().getScheduler()
+							.scheduleSyncDelayedTask(this, new Runnable() {
+								@Override
+								public void run() {
+									for (OfflinePlayer p : blueTeam
+											.getPlayers())
+										blueTeam.removePlayer(p);
+									for (OfflinePlayer p : redTeam.getPlayers())
+										redTeam.removePlayer(p);
+									resetLevel();
+									gameRunning = false;
+									endGame = false;
+								}
+							}, 20 * 10);
+				}
+			}
 			return;
+		}
 		List<Player> players = getPlayers();
 		int size = players.size();
 		if (size > 1) {
@@ -337,38 +379,6 @@ public class Main extends JavaPlugin implements Listener {
 			p.getInventory().setArmorContents(null);
 			p.teleport(new Location(Bukkit.getWorld(worldName), deadCoords[0],
 					deadCoords[1], deadCoords[2]));
-			boolean endGame = false;
-			if (redTeam.getSize() == 0) {
-				for (Player pla : getPlayers()) {
-					pla.sendMessage(ChatColor.AQUA
-							+ "[Server] "
-							+ ChatColor.RED
-							+ "Blue team wins! This round will end in 10 seconds...");
-				}
-				endGame = true;
-			} else if (blueTeam.getSize() == 0) {
-				for (Player pla : getPlayers()) {
-					pla.sendMessage(ChatColor.AQUA
-							+ "[Server] "
-							+ ChatColor.RED
-							+ "Red team wins! This round will end in 10 seconds...");
-				}
-				endGame = true;
-			}
-			if (endGame) {
-				Bukkit.getServer().getScheduler()
-						.scheduleSyncDelayedTask(this, new Runnable() {
-							@Override
-							public void run() {
-								for (OfflinePlayer p : blueTeam.getPlayers())
-									blueTeam.removePlayer(p);
-								for (OfflinePlayer p : redTeam.getPlayers())
-									redTeam.removePlayer(p);
-								resetLevel();
-								gameRunning = false;
-							}
-						}, 20 * 10);
-			}
 		}
 	}
 
