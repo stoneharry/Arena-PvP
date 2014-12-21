@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,6 +13,7 @@ import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -57,6 +59,7 @@ public class Main extends JavaPlugin implements Listener {
 	private Scoreboard board = null;
 	private Team blueTeam = null;
 	private Team redTeam = null;
+	private Stack<ChangedBlock> changedBlocks = new Stack<ChangedBlock>();
 
 	private boolean checkPlayer(Player p) {
 		if (p != null && p.getWorld().getName().equals(worldName))
@@ -255,7 +258,7 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	@EventHandler
-	public void dmg(EntityDamageEvent event) {
+	public void onEntityDamage(EntityDamageEvent event) {
 		Entity e = event.getEntity();
 		if (e instanceof Player) {
 			Player p = (Player) e;
@@ -287,19 +290,42 @@ public class Main extends JavaPlugin implements Listener {
 			p.getInventory().setArmorContents(null);
 			p.teleport(new Location(Bukkit.getWorld(worldName), deadCoords[0],
 					deadCoords[1], deadCoords[2]));
+			boolean endGame = false;
 			if (redTeam.getSize() == 0) {
 				for (Player pla : getPlayers()) {
-					pla.sendMessage(ChatColor.AQUA + "[Server] "
-							+ ChatColor.RED + "Blue team wins!");
+					pla.sendMessage(ChatColor.AQUA
+							+ "[Server] "
+							+ ChatColor.RED
+							+ "Blue team wins! This round will end in 10 seconds...");
 				}
-				gameRunning = false;
+				endGame = true;
 			} else if (blueTeam.getSize() == 0) {
 				for (Player pla : getPlayers()) {
-					pla.sendMessage(ChatColor.AQUA + "[Server] "
-							+ ChatColor.RED + "Red team wins!");
+					pla.sendMessage(ChatColor.AQUA
+							+ "[Server] "
+							+ ChatColor.RED
+							+ "Red team wins! This round will end in 10 seconds...");
 				}
-				gameRunning = false;
+				endGame = true;
 			}
+			if (endGame) {
+				Bukkit.getServer().getScheduler()
+						.scheduleSyncDelayedTask(this, new Runnable() {
+							@Override
+							public void run() {
+								resetLevel();
+								gameRunning = false;
+							}
+						}, 20 * 10);
+			}
+		}
+	}
+
+	public synchronized void resetLevel() {
+		World world = Bukkit.getWorld(worldName);
+		while (!changedBlocks.isEmpty()) {
+			ChangedBlock block = changedBlocks.pop();
+			world.getBlockAt(block.location).setType(block.block);
 		}
 	}
 
@@ -338,6 +364,10 @@ public class Main extends JavaPlugin implements Listener {
 			return;
 		if (gamePrep)
 			event.setCancelled(true);
+		else {
+			changedBlocks.push(new ChangedBlock(Material.AIR, event
+					.getBlockPlaced().getLocation()));
+		}
 	}
 
 	@EventHandler
@@ -346,6 +376,10 @@ public class Main extends JavaPlugin implements Listener {
 			return;
 		if (gamePrep)
 			event.setCancelled(true);
+		else {
+			changedBlocks.push(new ChangedBlock(event.getBlock().getType(),
+					event.getBlock().getLocation()));
+		}
 	}
 
 	@EventHandler
