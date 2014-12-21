@@ -1,11 +1,19 @@
 package stoneharry.pvp;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.Stack;
+import java.util.TreeSet;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,6 +42,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
@@ -60,6 +69,7 @@ public class Main extends JavaPlugin implements Listener {
 	private Team blueTeam = null;
 	private Team redTeam = null;
 	private Stack<ChangedBlock> changedBlocks = new Stack<ChangedBlock>();
+	public static Objective objective = null;
 
 	private boolean checkPlayer(Player p) {
 		if (p != null && p.getWorld().getName().equals(worldName))
@@ -216,6 +226,17 @@ public class Main extends JavaPlugin implements Listener {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+		try {
+			SaveScores scores = new SaveScores(objective);
+			FileOutputStream fs = new FileOutputStream(new File(
+					"arena_scores.cache"));
+			ObjectOutputStream os = new ObjectOutputStream(fs);
+			os.writeObject(scores);
+			fs.close();
+			os.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 		commandConsole.sendMessage(ChatColor.AQUA + "########################");
 		commandConsole.sendMessage(ChatColor.AQUA + "[StonedArena] "
 				+ ChatColor.RED + " Disabled!");
@@ -242,6 +263,26 @@ public class Main extends JavaPlugin implements Listener {
 		Objective objective = board.registerNewObjective("showHealth", "dummy");
 		objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
 		objective.setDisplayName(ChatColor.RED + "❤");
+
+		objective = board.registerNewObjective("killsboard", "dummy");
+		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+		objective.setDisplayName(ChatColor.AQUA + "High Scores");
+
+		try {
+			FileInputStream fs = new FileInputStream(new File(
+					"arena_scores.cache"));
+			ObjectInputStream os = new ObjectInputStream(fs);
+			SaveScores scores = (SaveScores) os.readObject();
+			fs.close();
+			List<String> players = scores.getPlayers();
+			List<Integer> points = scores.getScores();
+			int size = players.size();
+			for (int i = 0; i < size; ++i)
+				objective.getScore(players.get(i)).setScore(points.get(i));
+			os.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 
 		commandConsole.sendMessage(ChatColor.AQUA + "########################");
 		commandConsole.sendMessage(ChatColor.AQUA + "[StonedArena] "
@@ -279,10 +320,15 @@ public class Main extends JavaPlugin implements Listener {
 		Player p = event.getEntity();
 		if (checkPlayer(p)) {
 			p.getLocation().getWorld()
-					.playEffect(p.getLocation(), Effect.SMOKE, 1);
+					.playEffect(p.getLocation(), Effect.SMOKE, 10);
 			p.setHealth(p.getMaxHealth());
 			p.sendMessage(ChatColor.AQUA + "[Server] " + ChatColor.RED
 					+ "You have been killed!");
+			Player player = event.getEntity().getKiller();
+			if (player != null) {
+				Score score = objective.getScore(player.getName());
+				score.setScore(score.getScore() + 1);
+			}
 			event.getDrops().clear();
 			blueTeam.removePlayer(p);
 			redTeam.removePlayer(p);
@@ -321,11 +367,29 @@ public class Main extends JavaPlugin implements Listener {
 		}
 	}
 
+	private static long count = 0;
+
 	public synchronized void resetLevel() {
 		World world = Bukkit.getWorld(worldName);
 		while (!changedBlocks.isEmpty()) {
 			ChangedBlock block = changedBlocks.pop();
 			world.getBlockAt(block.location).setType(block.block);
+		}
+		Objective objective = board.registerNewObjective(
+				"B" + String.valueOf(++count), "dummy");
+		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+		objective.setDisplayName(ChatColor.AQUA + "High Scores");
+		SortedSet<SortedBoard> list = new TreeSet<SortedBoard>();
+		for (String str : board.getEntries())
+			list.add(new SortedBoard(str, Main.objective.getScore(str)
+					.getScore()));
+		int size = list.size() > 14 ? 15 : list.size();
+		Iterator<SortedBoard> it = list.iterator();
+		int i = 0;
+		while (it.hasNext() && i < size) {
+			SortedBoard b = it.next();
+			objective.getScore(b.player).setScore(b.score);
+			++i;
 		}
 	}
 
