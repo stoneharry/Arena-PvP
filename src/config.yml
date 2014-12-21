@@ -3,3 +3,16 @@
 
 # The name of the world file (e.g: world)
 WorldName: arena
+
+homeWorld: world
+homeX: 66
+homeY: 67
+homeZ: 250
+
+blueX: 0
+blueY: 5
+blueZ: -21
+
+redX: -6
+redY: 5
+redZ: 14
