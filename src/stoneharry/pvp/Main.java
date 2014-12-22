@@ -41,6 +41,9 @@ import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.Potion;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionType;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -218,6 +221,7 @@ public class Main extends JavaPlugin implements Listener {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private void equipPlayer(Player p) {
 		PlayerInventory inventory = p.getInventory();
 		inventory.setArmorContents(new ItemStack[] {
@@ -228,6 +232,15 @@ public class Main extends JavaPlugin implements Listener {
 		inventory.setItemInHand(new ItemStack(Material.DIAMOND_SWORD));
 		inventory.addItem(new ItemStack(Material.BOW));
 		inventory.addItem(new ItemStack(Material.ARROW, 20));
+		inventory.addItem(new ItemStack(Material.BAKED_POTATO, 3));
+		for (PotionEffect effect : p.getActivePotionEffects())
+			p.removePotionEffect(effect.getType());
+		inventory.addItem(new Potion(PotionType.INSTANT_DAMAGE, 2, true)
+				.toItemStack(1));
+		inventory.addItem(new Potion(PotionType.INSTANT_HEAL, 2, true)
+				.toItemStack(1));
+		inventory.addItem(new Potion(PotionType.SLOWNESS, 2, true)
+				.toItemStack(1));
 	}
 
 	public List<Player> getPlayers() {
@@ -322,7 +335,7 @@ public class Main extends JavaPlugin implements Listener {
 			List<Integer> points = scores.getScores();
 			int size = players.size();
 			for (int i = 0; i < size; ++i)
-				objective.getScore(players.get(i)).setScore(points.get(i));
+				Main.objective.getScore(players.get(i)).setScore(points.get(i));
 			os.close();
 		} catch (Exception ex) {
 			ex.printStackTrace();
