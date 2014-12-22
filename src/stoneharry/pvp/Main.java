@@ -55,6 +55,7 @@ public class Main extends JavaPlugin implements Listener {
 
 	private HashMap<String, ItemStack[]> inventories = new HashMap<String, ItemStack[]>();
 	private HashMap<String, ItemStack[]> armour = new HashMap<String, ItemStack[]>();
+	private HashMap<String, Location> locations = new HashMap<String, Location>();
 
 	private ConsoleCommandSender commandConsole = Bukkit.getServer()
 			.getConsoleSender();
@@ -112,14 +113,19 @@ public class Main extends JavaPlugin implements Listener {
 		String name = p.getName();
 		inventories.put(name, p.getInventory().getContents().clone());
 		armour.put(name, p.getInventory().getArmorContents());
+		locations.put(name, p.getLocation());
 		p.getInventory().clear();
 		p.getInventory().setArmorContents(null);
 		p.setGameMode(GameMode.SURVIVAL);
 	}
 
 	private void teleportHome(Player p) {
-		p.teleport(new Location(Bukkit.getWorld(homeName), homeCoords[0],
-				homeCoords[1], homeCoords[2]));
+		Location loc = locations.get(p.getName());
+		if (loc != null)
+			p.teleport(loc);
+		else
+			p.teleport(new Location(Bukkit.getWorld(homeName), homeCoords[0],
+					homeCoords[1], homeCoords[2]));
 		Scoreboard emptyBoard = manager.getNewScoreboard();
 		p.setScoreboard(emptyBoard);
 		blueTeam.removePlayer(p);
