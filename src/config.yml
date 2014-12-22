@@ -14,7 +14,7 @@ deadY: 4
 deadZ: 30
 
 # Number of arenas - must be > 1
-numArenas: 2
+numArenas: 4
 
 1blueX: 0
 1blueY: 5
@@ -29,3 +29,17 @@ numArenas: 2
 2redX: 19
 2redY: 8
 2redZ: 56
+
+3blueX: 22
+3blueY: 6
+3blueZ: -38
+3redX: 67
+3redY: 6
+3redZ: 13
+
+4blueX: -20
+4blueY: 28
+4blueZ: -56
+4redX: 12
+4redY: 28
+4redZ: -28

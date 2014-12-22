@@ -69,7 +69,7 @@ public class Main extends JavaPlugin implements Listener {
 	private String homeName = "world";
 	private String worldName = "arena";
 	private int numArenas = 1;
-	private int currentArena = -1;
+	private int currentArena = 0;
 
 	private ScoreboardManager manager = null;
 	private Scoreboard board = null;
@@ -187,8 +187,6 @@ public class Main extends JavaPlugin implements Listener {
 			Collections.shuffle(players);
 			gamePrep = true;
 			boolean blue = false;
-			if (++currentArena > numArenas)
-				currentArena = -1;
 			for (Player p : players) {
 				blue = !blue;
 				if (blue) {
@@ -217,6 +215,9 @@ public class Main extends JavaPlugin implements Listener {
 				p.sendMessage(ChatColor.AQUA + "[Server] " + ChatColor.RED
 						+ "The game will begin in 10 seconds!");
 			}
+			++currentArena;
+			if (currentArena == numArenas)
+				currentArena = 0;
 			Bukkit.getServer().getScheduler()
 					.scheduleSyncDelayedTask(this, new Runnable() {
 						@Override
