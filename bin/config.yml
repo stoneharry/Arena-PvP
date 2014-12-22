@@ -9,14 +9,23 @@ homeX: -296
 homeY: 80
 homeZ: 307
 
-blueX: 0
-blueY: 5
-blueZ: -21
-
-redX: -6
-redY: 5
-redZ: 14
-
 deadX: -5
 deadY: 4
 deadZ: 30
+
+# Number of arenas - must be > 1
+numArenas: 2
+
+1blueX: 0
+1blueY: 5
+1blueZ: -21
+1redX: -6
+1redY: 5
+1redZ: 14
+
+2blueX: 15
+2blueY: 9
+2blueZ: 20
+2redX: 19
+2redY: 8
+2redZ: 56

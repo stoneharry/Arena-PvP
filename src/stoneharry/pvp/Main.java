@@ -63,11 +63,13 @@ public class Main extends JavaPlugin implements Listener {
 	public boolean gamePrep = true;
 
 	private int[] homeCoords = { 0, 0, 0 };
-	private int[] blueCoords = { 0, 0, 0 };
-	private int[] redCoords = { 0, 0, 0 };
+	private int[][] blueCoords = { { 0, 0, 0 } };
+	private int[][] redCoords = { { 0, 0, 0 } };
 	private int[] deadCoords = { 0, 0, 0 };
 	private String homeName = "world";
 	private String worldName = "arena";
+	private int numArenas = 1;
+	private int currentArena = -1;
 
 	private ScoreboardManager manager = null;
 	private Scoreboard board = null;
@@ -185,17 +187,23 @@ public class Main extends JavaPlugin implements Listener {
 			Collections.shuffle(players);
 			gamePrep = true;
 			boolean blue = false;
+			if (++currentArena > numArenas)
+				currentArena = -1;
 			for (Player p : players) {
 				blue = !blue;
 				if (blue) {
 					p.teleport(new Location(Bukkit.getWorld(worldName),
-							blueCoords[0], blueCoords[1], blueCoords[2]));
+							blueCoords[currentArena][0],
+							blueCoords[currentArena][1],
+							blueCoords[currentArena][2]));
 					p.sendMessage(ChatColor.AQUA + "[Server] " + ChatColor.RED
 							+ "You have joined the blue team!");
 					blueTeam.addPlayer(p);
 				} else {
 					p.teleport(new Location(Bukkit.getWorld(worldName),
-							redCoords[0], redCoords[1], redCoords[2]));
+							redCoords[currentArena][0],
+							redCoords[currentArena][1],
+							redCoords[currentArena][2]));
 					p.sendMessage(ChatColor.AQUA + "[Server] " + ChatColor.RED
 							+ "You have joined the red team!");
 					redTeam.addPlayer(p);
@@ -267,12 +275,23 @@ public class Main extends JavaPlugin implements Listener {
 		homeCoords[0] = Integer.parseInt(getConfig().getString("homeX"));
 		homeCoords[1] = Integer.parseInt(getConfig().getString("homeY"));
 		homeCoords[2] = Integer.parseInt(getConfig().getString("homeZ"));
-		blueCoords[0] = Integer.parseInt(getConfig().getString("blueX"));
-		blueCoords[1] = Integer.parseInt(getConfig().getString("blueY"));
-		blueCoords[2] = Integer.parseInt(getConfig().getString("blueZ"));
-		redCoords[0] = Integer.parseInt(getConfig().getString("redX"));
-		redCoords[1] = Integer.parseInt(getConfig().getString("redY"));
-		redCoords[2] = Integer.parseInt(getConfig().getString("redZ"));
+		numArenas = getConfig().getInt("numArenas");
+		blueCoords = new int[numArenas][3];
+		redCoords = new int[numArenas][3];
+		for (int i = 0; i < numArenas; ++i) {
+			blueCoords[i][0] = Integer.parseInt(getConfig().getString(
+					i + "blueX"));
+			blueCoords[i][1] = Integer.parseInt(getConfig().getString(
+					i + "blueY"));
+			blueCoords[i][2] = Integer.parseInt(getConfig().getString(
+					i + "blueZ"));
+			redCoords[i][0] = Integer.parseInt(getConfig()
+					.getString(i + "redX"));
+			redCoords[i][1] = Integer.parseInt(getConfig()
+					.getString(i + "redY"));
+			redCoords[i][2] = Integer.parseInt(getConfig()
+					.getString(i + "redZ"));
+		}
 		deadCoords[0] = Integer.parseInt(getConfig().getString("deadX"));
 		deadCoords[1] = Integer.parseInt(getConfig().getString("deadY"));
 		deadCoords[2] = Integer.parseInt(getConfig().getString("deadZ"));
