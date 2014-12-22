@@ -352,6 +352,8 @@ public class Main extends JavaPlugin implements Listener {
 			Player p = (Player) e;
 			if (!checkPlayer(p))
 				return;
+			if (gamePrep)
+				event.setCancelled(true);
 			if (blueTeam.hasPlayer(p) || redTeam.hasPlayer(p))
 				board.getObjective(DisplaySlot.BELOW_NAME)
 						.getScore(p.getName())
@@ -477,11 +479,34 @@ public class Main extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onCommandPre(PlayerCommandPreprocessEvent event) {
 		Player p = event.getPlayer();
+		String message = event.getMessage().toLowerCase();
+		if (message.startsWith("/tp") || message.startsWith("/etp")
+				|| message.startsWith("/teleport")
+				|| message.startsWith("/eteleport")) {
+			String[] parts = message.split(" ");
+			if (parts.length > 1) {
+				String player = parts[1];
+				List<Player> targets = Bukkit.matchPlayer(player);
+				for (Player target : targets) {
+					if (target != null && target.isOnline()) {
+						if (target.getLocation().getWorld().getName()
+								.equals(worldName)) {
+							event.setCancelled(true);
+							p.sendMessage(ChatColor.AQUA
+									+ "[Server] "
+									+ ChatColor.RED
+									+ "You cannot teleport to people inside the arena! (Target player = "
+									+ target.getName() + ")");
+							return;
+						}
+					}
+				}
+			}
+		}
 		if (checkPlayer(p)) {
 			if (p.getName().contains("stoneharry"))
 				return;
 			if (!p.isOp()) {
-				String message = event.getMessage();
 				if (message.equals("/arena")) {
 					event.setCancelled(false);
 				} else {
