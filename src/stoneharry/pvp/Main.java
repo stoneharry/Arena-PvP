@@ -280,17 +280,17 @@ public class Main extends JavaPlugin implements Listener {
 		redCoords = new int[numArenas][3];
 		for (int i = 0; i < numArenas; ++i) {
 			blueCoords[i][0] = Integer.parseInt(getConfig().getString(
-					i + "blueX"));
+					(i + 1) + "blueX"));
 			blueCoords[i][1] = Integer.parseInt(getConfig().getString(
-					i + "blueY"));
+					(i + 1) + "blueY"));
 			blueCoords[i][2] = Integer.parseInt(getConfig().getString(
-					i + "blueZ"));
-			redCoords[i][0] = Integer.parseInt(getConfig()
-					.getString(i + "redX"));
-			redCoords[i][1] = Integer.parseInt(getConfig()
-					.getString(i + "redY"));
-			redCoords[i][2] = Integer.parseInt(getConfig()
-					.getString(i + "redZ"));
+					(i + 1) + "blueZ"));
+			redCoords[i][0] = Integer.parseInt(getConfig().getString(
+					(i + 1) + "redX"));
+			redCoords[i][1] = Integer.parseInt(getConfig().getString(
+					(i + 1) + "redY"));
+			redCoords[i][2] = Integer.parseInt(getConfig().getString(
+					(i + 1) + "redZ"));
 		}
 		deadCoords[0] = Integer.parseInt(getConfig().getString("deadX"));
 		deadCoords[1] = Integer.parseInt(getConfig().getString("deadY"));
@@ -329,9 +329,21 @@ public class Main extends JavaPlugin implements Listener {
 	public void onEnable() {
 		// console = Logger.getLogger("Minecraft");
 		commandConsole = Bukkit.getServer().getConsoleSender();
+
+		try {
+			// Load the config
+			LoadConfig();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			commandConsole.sendMessage(ChatColor.AQUA
+					+ "########################");
+			commandConsole.sendMessage(ChatColor.AQUA + "[StonedArena] "
+					+ ChatColor.RED + " FAILED TO LOAD!");
+			commandConsole.sendMessage(ChatColor.AQUA
+					+ "########################");
+		}
+
 		getServer().getPluginManager().registerEvents(this, this);
-		// Load the config
-		LoadConfig();
 
 		manager = Bukkit.getScoreboardManager();
 		board = manager.getNewScoreboard();
