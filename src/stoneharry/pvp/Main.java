@@ -213,7 +213,7 @@ public class Main extends JavaPlugin implements Listener {
 				p.getInventory().clear();
 				equipPlayer(p);
 				p.sendMessage(ChatColor.AQUA + "[Server] " + ChatColor.RED
-						+ "The game will begin in 10 seconds!");
+						+ "The game will begin in 5 seconds!");
 			}
 			++currentArena;
 			if (currentArena == numArenas)
@@ -228,7 +228,7 @@ public class Main extends JavaPlugin implements Listener {
 										+ ChatColor.RED + "The game has begun!");
 							}
 						}
-					}, 20 * 10);
+					}, 20 * 5);
 		} else {
 			for (Player p : players)
 				p.sendMessage(ChatColor.AQUA + "[Server] " + ChatColor.RED
@@ -247,14 +247,14 @@ public class Main extends JavaPlugin implements Listener {
 		inventory.setItemInHand(new ItemStack(Material.DIAMOND_SWORD));
 		inventory.addItem(new ItemStack(Material.BOW));
 		inventory.addItem(new ItemStack(Material.ARROW, 20));
-		inventory.addItem(new ItemStack(Material.BAKED_POTATO, 3));
+		inventory.addItem(new ItemStack(Material.BAKED_POTATO, 1));
 		for (PotionEffect effect : p.getActivePotionEffects())
 			p.removePotionEffect(effect.getType());
 		inventory.addItem(new Potion(PotionType.INSTANT_DAMAGE, 2, true)
 				.toItemStack(1));
 		inventory.addItem(new Potion(PotionType.INSTANT_HEAL, 2, true)
 				.toItemStack(1));
-		inventory.addItem(new Potion(PotionType.SLOWNESS, 2, true)
+		inventory.addItem(new Potion(PotionType.FIRE_RESISTANCE, 1, true)
 				.toItemStack(1));
 	}
 
