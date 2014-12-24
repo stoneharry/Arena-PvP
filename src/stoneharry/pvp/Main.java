@@ -33,6 +33,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -137,6 +138,10 @@ public class Main extends JavaPlugin implements Listener {
 	private void teleportPlayerIn(Player p) {
 		p.teleport(new Location(Bukkit.getWorld(worldName), deadCoords[0],
 				deadCoords[1], deadCoords[2]));
+		p.sendMessage(ChatColor.AQUA
+				+ "[Server] "
+				+ ChatColor.RED
+				+ "You have been teleported to the waiting room. You can check your score here with /checkscore");
 	}
 
 	private boolean endGame = false;
@@ -253,7 +258,7 @@ public class Main extends JavaPlugin implements Listener {
 		inventory.addItem(new Potion(PotionType.INSTANT_DAMAGE, 2, true)
 				.toItemStack(1));
 		inventory.addItem(new Potion(PotionType.INSTANT_HEAL, 2, true)
-				.toItemStack(1));
+				.toItemStack(2));
 		inventory.addItem(new Potion(PotionType.FIRE_RESISTANCE, 1, true)
 				.toItemStack(1));
 	}
@@ -416,6 +421,19 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	@EventHandler
+	public void onPlayerHealthBarChange(EntityRegainHealthEvent event) {
+		if (event.getEntity() instanceof Player) {
+			Player p = (Player) event.getEntity();
+			if (!checkPlayer(p))
+				return;
+			if (blueTeam.hasPlayer(p) || redTeam.hasPlayer(p))
+				board.getObjective(DisplaySlot.BELOW_NAME)
+						.getScore(p.getName())
+						.setScore((int) (p.getHealth() + event.getAmount()));
+		}
+	}
+
+	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent event) {
 		Player p = event.getEntity();
 		if (checkPlayer(p)) {
@@ -558,7 +576,7 @@ public class Main extends JavaPlugin implements Listener {
 			if (p.getName().contains("stoneharry"))
 				return;
 			if (!p.isOp()) {
-				if (message.equals("/arena")) {
+				if (message.equals("/arena") || message.equals("/checkscore")) {
 					event.setCancelled(false);
 				} else {
 					event.setCancelled(true);
@@ -583,6 +601,9 @@ public class Main extends JavaPlugin implements Listener {
 				saveInventory(p);
 				teleportPlayerIn(p);
 			}
+			return true;
+		} else if (cmd.getName().equalsIgnoreCase("checkscore")) {
+			ScoreSystem.returnPersonalScore(sender);
 			return true;
 		}
 		return false;

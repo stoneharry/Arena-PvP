@@ -6,3 +6,5 @@ main: stoneharry.pvp.Main
 commands:
     arena:
         description: Join the arena.
+    checkscore:
+        description: Returns your score in the arena.
